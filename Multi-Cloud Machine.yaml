@@ -1,0 +1,95 @@
+formatVersion: 1
+inputs:
+  SelectCloud1:
+    type: string
+    default: 'env:aws'
+    enum:
+      - 'env:aws'
+      - 'env:azure'
+  SelectCloud2:
+    type: string
+    default: 'env:aws'
+    enum:
+      - 'env:aws'
+      - 'env:azure'
+  hostname1:
+    type: string
+    default: cloud-vm1
+  hostname2:
+    type: string
+    default: cloud-vm2
+  user:
+    type: string
+    title: Username for SSH
+    description: The username you would like to have for the installation.
+    default: demouser
+  password:
+    type: string
+    pattern: '[a-z0-9A-Z@#$]+'
+    encrypted: true
+    title: Admin Account Password
+    description: The password you would like to use for System.
+resources:
+  WebServer2:
+    type: Cloud.Machine
+    metadata:
+      layoutPosition:
+        - 0
+        - 0
+    properties:
+      image: Ubuntu
+      flavor: Medium
+      newName: '${input.hostname2}'
+      cloudConfig: |
+        #cloud-config
+        hostname: ${input.hostname2}
+        users:
+         - name: ${input.user}
+           sudo: ['ALL=(ALL) NOPASSWD:ALL']
+           groups: sudo
+           shell: /bin/bash
+           
+        packages:
+         - apache2
+          
+        runcmd:
+         -  echo "This file was created by Cloud-Init in environment "${input.SelectCloud2} >> /tmp/environment.txt
+         - PASS=${input.password}
+         - USER=${input.user}
+         - echo $USER:$PASS | /usr/sbin/chpasswd
+         - sed -i "s/PasswordAuthentication no/PasswordAuthentication yes/g" /etc/ssh/sshd_config
+         - service ssh reload
+      constraints:
+        - tag: '${input.SelectCloud2}'
+  WebServer1:
+    type: Cloud.Machine
+    metadata:
+      layoutPosition:
+        - 0
+        - 1
+    properties:
+      image: Ubuntu
+      flavor: Medium
+      newName: '${input.hostname1}'
+      cloudConfig: |
+        #cloud-config
+        hostname: ${input.hostname1}
+
+        users:
+          - name: ${input.user}
+            sudo: ['ALL=(ALL) NOPASSWD:ALL']
+            groups: sudo
+            shell: /bin/bash
+            
+        packages:
+          - nginx
+            
+        runcmd:
+          - echo "This file was created by Cloud-Init in environment "${input.SelectCloud1} >> /tmp/environment.txt
+          - PASS=${input.password}
+          - USER=${input.user}
+          - echo $USER:$PASS | /usr/sbin/chpasswd
+          - sed -i "s/PasswordAuthentication no/PasswordAuthentication yes/g" /etc/ssh/sshd_config
+          - service ssh reload
+      constraints:
+        - tag: '${input.SelectCloud1}'
