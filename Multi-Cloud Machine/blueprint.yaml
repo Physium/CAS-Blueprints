@@ -93,5 +93,6 @@ resources:
           - echo $USER:$PASS | /usr/sbin/chpasswd
           - sed -i "s/PasswordAuthentication no/PasswordAuthentication yes/g" /etc/ssh/sshd_config
           - service ssh reload
+          - echo 'testing github source control'
       constraints:
         - tag: '${input.SelectCloud1}'
