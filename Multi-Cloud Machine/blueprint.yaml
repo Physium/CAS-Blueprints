@@ -1,3 +1,5 @@
+name: Multi-Cloud Machine
+version: 1
 formatVersion: 1
 inputs:
   SelectCloud1:
